@@ -22,19 +22,24 @@ int file_copy(char *source, char *destination)
 {
     int fs;
     
-    fs = open(source,O_RDONLY);
+    fs = open(source,O_RDONLY); //just exists to create file if not exist
+    
+
     printf("[+] Opened file for reading\n");
     FILE *fd = fopen(destination,"w+");
+    FILE *fs_read = fopen(source,"r+");
     printf("[+] Opening file for writing\n");
 
 
-    char buf[8192];
+    char buf[8192] = {};
     long n;
     
-    while ((n=read(fs,buf,(long)sizeof(buf)))> 0){
+    while (read(fs,buf,sizeof(buf))>0){
         fwrite(buf,1,sizeof(buf),fd); 
     }
     printf("[+] Data written to %s\n",destination);
+    fflush(fd);
+    fclose(fd);
     return 0;
 }
 int zcat_impl (FILE *input,FILE *output)
@@ -67,7 +72,7 @@ int zcat_impl (FILE *input,FILE *output)
             // Write to the output file whatever inflate() left in the output
             // buffer. Return with an error if the write does not complete.
             size_t got = CHUNK - strm.avail_out;
-            size_t put = fwrite(out, 1, got, stdout);
+            size_t put = fwrite(out, 1, got, output);
             if (put != got)
                 return Z_ERRNO;
 
