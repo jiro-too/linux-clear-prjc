@@ -84,7 +84,14 @@
 
 #if defined(CONFIG_SYSCTL)
 
+#ifdef CONFIG_USER_NS
+extern int unprivileged_userns_clone;
+#endif
 /* Constants used for minimum and  maximum */
+
+#ifdef CONFIG_SCHED_ALT
+extern int sched_yield_type;
+#endif
 
 #ifdef CONFIG_PERF_EVENTS
 static const int six_hundred_forty_kb = 640 * 1024;
@@ -1590,6 +1597,7 @@ int proc_do_static_key(struct ctl_table *table, int write,
 }
 
 static struct ctl_table kern_table[] = {
+#ifndef CONFIG_SCHED_ALT
 #ifdef CONFIG_NUMA_BALANCING
 	{
 		.procname	= "numa_balancing",
@@ -1601,6 +1609,7 @@ static struct ctl_table kern_table[] = {
 		.extra2		= SYSCTL_FOUR,
 	},
 #endif /* CONFIG_NUMA_BALANCING */
+#endif /* !CONFIG_SCHED_ALT */
 	{
 		.procname	= "panic",
 		.data		= &panic_timeout,
@@ -1749,6 +1758,15 @@ static struct ctl_table kern_table[] = {
 		.maxlen		= sizeof (int),
 		.mode		= 0644,
 		.proc_handler	= sysrq_sysctl_handler,
+	},
+#endif
+#ifdef CONFIG_USER_NS
+	{
+		.procname	= "unprivileged_userns_clone",
+		.data		= &unprivileged_userns_clone,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
 	},
 #endif
 #ifdef CONFIG_PROC_SYSCTL
@@ -1900,6 +1918,17 @@ static struct ctl_table kern_table[] = {
 		.maxlen		= sizeof(int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
+	},
+#endif
+#ifdef CONFIG_SCHED_ALT
+	{
+		.procname	= "yield_type",
+		.data		= &sched_yield_type,
+		.maxlen		= sizeof (int),
+		.mode		= 0644,
+		.proc_handler	= &proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_TWO,
 	},
 #endif
 #if defined(CONFIG_S390) && defined(CONFIG_SMP)

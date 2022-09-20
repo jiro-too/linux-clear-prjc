@@ -479,7 +479,7 @@ static int proc_pid_schedstat(struct seq_file *m, struct pid_namespace *ns,
 		seq_puts(m, "0 0 0\n");
 	else
 		seq_printf(m, "%llu %llu %lu\n",
-		   (unsigned long long)task->se.sum_exec_runtime,
+		   (unsigned long long)tsk_seruntime(task),
 		   (unsigned long long)task->sched_info.run_delay,
 		   task->sched_info.pcount);
 
@@ -3265,6 +3265,9 @@ static const struct pid_entry tgid_base_stuff[] = {
 	REG("smaps",      S_IRUGO, proc_pid_smaps_operations),
 	REG("smaps_rollup", S_IRUGO, proc_pid_smaps_rollup_operations),
 	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
+#ifdef CONFIG_MEM_SOFT_DIRTY
+	REG("pagemap_reset", S_IRUSR, proc_pagemap_reset_operations),
+#endif
 #endif
 #ifdef CONFIG_SECURITY
 	DIR("attr",       S_IRUGO|S_IXUGO, proc_attr_dir_inode_operations, proc_attr_dir_operations),
