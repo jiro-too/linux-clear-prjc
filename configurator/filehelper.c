@@ -2,14 +2,41 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-
+#include<fcntl.h> 
 #include <unistd.h>
 
 #include <zlib.h>
+#include "configurator.h"
+#include <signal.h>
+
+#define CHUNK 32768
+
+void interrupt_handler(int signal){
+    printf("\n\nCaught signal %d. Terminating\n\n",signal);
+    _exit(signal);
+}
 
 
-#define CHUNK 16384
 
+int file_copy(char *source, char *destination)
+{
+    int fs;
+    
+    fs = open(source,O_RDONLY);
+    printf("[+] Opened file for reading\n");
+    FILE *fd = fopen(destination,"w+");
+    printf("[+] Opening file for writing\n");
+
+
+    char buf[8192];
+    long n;
+    
+    while ((n=read(fs,buf,(long)sizeof(buf)))> 0){
+        fwrite(buf,1,sizeof(buf),fd); 
+    }
+    printf("[+] Data written to %s\n",destination);
+    return 0;
+}
 int zcat_impl (FILE *input,FILE *output)
 {
     z_stream strm = {};
@@ -28,6 +55,9 @@ int zcat_impl (FILE *input,FILE *output)
 
         // Decompress all of what's in the input buffer.
         do {
+            fflush(stdout);
+
+            signal(SIGINT,(void (*)(int))interrupt_handler);
             // Decompress as much as possible to the CHUNK output buffer.
             unsigned char out[CHUNK];
             strm.avail_out = CHUNK;
