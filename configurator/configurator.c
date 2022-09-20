@@ -33,11 +33,11 @@ static void usage(){
 "-g \tSame as -e but allows you to specify custom path\n"
 "-b \tGets current kernel config from /boot/ directory\n"
 "-h \tShows this message\n"
-"-p \tPretend option. Dry-run without root access\n"
+"-p \tPretend option. Dry-run without root access\n [WIP]"
 "-o \tChange final .config option output location\n"
-"-k \tChange kernel directory\n"
+"-k \tChange kernel directory\n [WIP]"
 "-x \tStarts interactive mode to download kernel from kernel.org and patch it\n\t\
-Config file can be specified within interactive session\n"
+Config file can be specified within interactive session\n [WIP]"
     );
     exit(1);
 } 
@@ -120,6 +120,11 @@ if (argc > 1){
   }
   SET_BINARY_MODE(stdio);
   SET_BINARY_MODE(stdout);
-
+  if (_custom_config){
+      file_copy(input_opt_path,final_config_out_path);
+  }
+  else if (_extraction){
+      get_proc_gz();
+  }
 }
 
