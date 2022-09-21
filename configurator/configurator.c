@@ -334,6 +334,11 @@ void dist_config()
 
 int main(int argc,char **argv)
 {
+
+    if (getuid() !=0){
+        printf("Requires root access\n");
+        exit(1);
+    }
 if (argc > 1){  
     int opt;
     while ((opt = getopt(argc,argv,"i:o:g:k:ehpa")) != EOF){
