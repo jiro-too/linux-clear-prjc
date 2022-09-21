@@ -40,14 +40,16 @@ The `-i` allows you to use existing configuration files. Example:
 
 The configurator also provides a `-o` option to override the path `-i` and `-g` store their configurations at. Thi can be used to
 help compiling custom kernels.
-`./configurator -i /boot/config-5.19.10-stella -o /usr/src/linux/.config`
-`./configurator -g /proc/config.gz -o /usr/src/linux/.config`
+`./configurator -i /boot/config-5.19.10-stella -o /usr/src/linux/.config` 
 
-Although you can use `-o` the recommended way to patch and compile custom kernels is:
-`./configurator -k /path/to/vanilla/kernel -g /proc/config.gz`
+`./configurator -g /proc/config.gz -o /usr/src/linux/.config` 
+
+
+Although you can use `-o` the recommended way to patch and compile custom kernels is: 
+`./configurator -k /path/to/vanilla/kernel -g /proc/config.gz` 
 
 If you do not have a `/proc/config.gz` or a existing kernel configuration you can use, you may want to use a configuration provided by a distribution. 
-The configurator currently suppots:
+The configurator currently suppots: 
 * Arch Linux kernel configs 
 * Gentoo distribution kernel configs 
 
