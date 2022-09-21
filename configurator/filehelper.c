@@ -16,14 +16,32 @@ void interrupt_handler(int signal){
     _exit(signal);
 }
 
+int file_check(int argc,...)
+{
+    va_list argv;
+    va_start(argv,argc);
 
-
+    for (int i=0;i<argc;++i)
+    {
+        char *path = va_arg(argv,char*);
+        if (access(path,F_OK) !=0){
+            printf("Unable to access %s",path);
+            return -1;
+        }
+    }
+    return 0;
+}
 int file_copy(char *source, char *destination)
 {
+   
     int fs;
     
     fs = open(source,O_RDONLY); //just exists to create file if not exist
-    
+                                //
+    if (file_check(1,source) != 0){
+        printf("[x] Couldnt access files trying to copy existing config.\n");
+        exit(1);
+    }
 
     printf("[+] Opened file for reading\n");
     FILE *fd = fopen(destination,"w+");

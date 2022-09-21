@@ -1,0 +1,11 @@
+
+#define CPU_SCHEDULER_PDS
+#define CLEAR_PATCHES
+#define ALLOW_SYSCTL_DISALLOW_USER_PRIVELAGE
+#define ADD_ACS_OVERRIDES_IOMMU_PATCH 
+#define FSYNC_VIA_FUTEX
+#define WINESYNC_SUPPORT
+#define MISC_PATCHES
+#define SUPPORT_LRU
+
+void patch_prompt(char *kernel_path);

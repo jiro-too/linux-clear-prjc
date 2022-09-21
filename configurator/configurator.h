@@ -12,3 +12,6 @@
 
 void int_handler();
 bool get_proc_gz();
+long input();
+void make_kernel();
+int interactive_session();
