@@ -39,7 +39,7 @@ The `-i` allows you to use existing configuration files. Example:
 `./configurator -i /boot/config-5.19.10-stella`
 
 The configurator also provides a `-o` option to override the path `-i` and `-g` store their configurations at. Thi can be used to
-help compiling custom kernels.
+help compiling custom kernels. 
 `./configurator -i /boot/config-5.19.10-stella -o /usr/src/linux/.config` 
 
 `./configurator -g /proc/config.gz -o /usr/src/linux/.config` 
