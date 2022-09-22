@@ -1,3 +1,7 @@
+#ifndef configurator_h
+#define configurator_h
+#endif
+
 #define SET_BINARY_MODE(file)
 #define bool int 
 #define true 1
@@ -10,8 +14,11 @@
 #define SIGTRAP 5   /* Trace trap. */ 
 #define SIGABRT 6   /* Abort. */
 
-void int_handler();
-bool get_proc_gz();
+#define ERROR_PREMSG "[\033[0;31m*\033[0;37m]"
+// _vprintf is used to print verbose output
+
+void eprintf(char *fmt,...);
+void _vprintf(char *fmt,...);
+
 long input();
-void make_kernel();
-int interactive_session();
+static void make_kernel();

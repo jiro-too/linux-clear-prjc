@@ -1,8 +1,29 @@
+
+/*
+ * This file is part of linux-clear-prjc.
+ *
+ * Developed as a helper to build custom kernels.
+ * This product includes software developed by Soham Nandy @ DPSRPK 
+ * (soham.nandy2006@gmail.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include<fcntl.h> 
+#include <fcntl.h> 
 #include <unistd.h>
 
 #include <zlib.h>
@@ -10,13 +31,19 @@
 #include <signal.h>
 
 #define CHUNK 32768
+static ssize_t processed;
 
-void interrupt_handler(int signal){
-    printf("\n\nCaught signal %d. Terminating\n\n",signal);
+static void 
+interrupt_handler(int signal)
+{
+    eprintf("Caught termination signal %d\n Processed blocks %zd",signal,processed);
     _exit(signal);
 }
 
-int file_check(int argc,...)
+int 
+file_check(
+        int argc,
+        ...)
 {
     va_list argv;
     va_start(argv,argc);
@@ -31,7 +58,9 @@ int file_check(int argc,...)
     }
     return 0;
 }
-int file_copy(char *source, char *destination)
+
+int 
+file_copy (char *source, char *destination)
 {
    
     int fs;
@@ -39,7 +68,7 @@ int file_copy(char *source, char *destination)
     fs = open(source,O_RDONLY); //just exists to create file if not exist
                                 //
     if (file_check(1,source) != 0){
-        printf("[x] Couldnt access files trying to copy existing config.\n");
+        _vprintf("[x] Couldnt access files trying to copy existing config.\n");
         exit(1);
     }
 
@@ -55,12 +84,15 @@ int file_copy(char *source, char *destination)
     while (read(fs,buf,sizeof(buf))>0){
         fwrite(buf,1,sizeof(buf),fd); 
     }
-    printf("[+] Data written to %s\n",destination);
+    _vprintf("[+] Data written to %s\n",destination);
     fflush(fd);
     fclose(fd);
     return 0;
 }
-int zcat_impl (FILE *input,FILE *output)
+
+
+int 
+zcat_impl (FILE *input,FILE *output)
 {
     z_stream strm = {};
     int ret = inflateInit2(&strm,16+MAX_WBITS);
@@ -69,7 +101,8 @@ int zcat_impl (FILE *input,FILE *output)
     unsigned char in[CHUNK];
      for (;;) {
         // Keep reading until the end of the input file or an error.
-        if (strm.avail_in == 0) {
+        if (strm.avail_in == 0) 
+        {
             strm.avail_in = fread(in, 1, CHUNK, input);
             if (strm.avail_in == 0)
                 break;
@@ -80,7 +113,9 @@ int zcat_impl (FILE *input,FILE *output)
         do {
             fflush(stdout);
 
-            signal(SIGINT,(void (*)(int))interrupt_handler);
+            signal(SIGINT,
+                    (void (*)(int))interrupt_handler); //typecast
+
             // Decompress as much as possible to the CHUNK output buffer.
             unsigned char out[CHUNK];
             strm.avail_out = CHUNK;
@@ -105,12 +140,15 @@ int zcat_impl (FILE *input,FILE *output)
                 (void)inflateEnd(&strm);
                 return ret;
             }
-
+            processed+=got;
             // Continue until everything in the input buffer is consumed.
         } while (strm.avail_in > 0);
     }
 
     // Successfully decompressed all of the input file. Clean up and return.
-    assert(inflateEnd(&strm) == Z_OK);
+    assert(
+            inflateEnd(&strm) == Z_OK
+        );
+
     return ret;
 }

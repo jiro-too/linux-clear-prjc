@@ -10,7 +10,8 @@
 
 char *kver;
 
-void patch_kernel(char *kernel_dir,char *patch_path)
+static void 
+patch_kernel(char *kernel_dir,char *patch_path)
 {
   char command[1024] = {};
   sprintf(command,"patch -d /%s -p1 < %s",kernel_dir,patch_path);
