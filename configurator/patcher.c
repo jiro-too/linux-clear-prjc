@@ -1,3 +1,24 @@
+/*
+ * This file is part of linux-clear-prjc.
+ *
+ * Developed as a helper to build custom kernels.
+ * This product includes software developed by Soham Nandy @ DPSRPK 
+ * (soham.nandy2006@gmail.com).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,6 +54,7 @@ void patch_prompt(char *kernel_path)
   }
   
 #ifdef CPU_SCHEDULER_PDS
+#pragma message "PATCH ENABLED"
   printf("\nAlternative CPU schedulers. Recommended for gaming.[0/1]\n");
   opt=input();
   if (opt){
@@ -42,6 +64,7 @@ void patch_prompt(char *kernel_path)
   }
 #endif
 #ifdef ALLOW_SYSCTL_DISALLOW_USER_PRIVELAGE
+#pragma message "PATCH ENABLED"
   printf("\nPatch kernel to allow sysctl to disallow unprivelaged CLONE_NEWUSER by default? [0/1]\n");
   opt = input();
   if (opt){
@@ -51,6 +74,7 @@ void patch_prompt(char *kernel_path)
 #endif
 
 #ifdef CLEAR_PATCHES
+#pragma message "PATCH ENABLED"
   printf("\nPatch kernel with Xanmod and intel Clear patches. Recommended for gaming [0/1]\n");
   opt=input();
   if (opt){
@@ -63,6 +87,7 @@ void patch_prompt(char *kernel_path)
 #endif
   
 #ifdef ADD_ACS_OVERRIDES_IOMMU_PATCH
+#pragma message "PATCH ENABLED"
   printf("\nAdd acs-overrides-iommu patches. Recommended [0/1]\n");
   opt=input();
   if (opt){
@@ -72,6 +97,7 @@ void patch_prompt(char *kernel_path)
 #endif 
 
 #ifdef FSYNC_VIA_FUTEX
+#pragma message "PATCH ENABLED"
   printf("\n\
 Add option to wait on mulitple futex. Allows old proton versions to keep using fsync\n\
 in newer versions of the kernel. Recommended [0/1]\n");
@@ -84,6 +110,7 @@ in newer versions of the kernel. Recommended [0/1]\n");
 #endif
 
 #ifdef WINESYNC_SUPPORT
+#pragma message "PATCH ENABLED"
   printf("\nAdd option to support Winesync in the kernel. [0/1]\n");
   opt=input();
   if (opt){
@@ -93,6 +120,7 @@ in newer versions of the kernel. Recommended [0/1]\n");
 #endif
 
 #ifdef SUPPORT_LRU
+#pragma message "PATCH ENABLED"
   printf(("\
 \nclearing the accessed bit in a PTE usually triggers a page fault in\n\
 non x86/x86_64 or arm64 architectures. Recommended if you dont have arm64 or x86 [0/1]\n"
@@ -104,6 +132,7 @@ non x86/x86_64 or arm64 architectures. Recommended if you dont have arm64 or x86
   }
 #endif
 #ifdef MISC_PATCHES
+#pragma message "PATCH ENABLED"
   printf("\nMisc patches? [0/1]\n");
   opt=input();
   if (opt){

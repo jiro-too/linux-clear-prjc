@@ -342,7 +342,7 @@ static bool need_activate_page_drain(int cpu)
 	return pagevec_count(&per_cpu(lru_pvecs.activate_page, cpu)) != 0;
 }
 
-void folio_activate(struct folio *folio)
+static void folio_activate(struct folio *folio)
 {
 	if (folio_test_lru(folio) && !folio_test_active(folio) &&
 	    !folio_test_unevictable(folio)) {
@@ -362,7 +362,7 @@ static inline void activate_page_drain(int cpu)
 {
 }
 
-void folio_activate(struct folio *folio)
+static void folio_activate(struct folio *folio)
 {
 	struct lruvec *lruvec;
 
@@ -405,40 +405,6 @@ static void __lru_cache_activate_folio(struct folio *folio)
 	local_unlock(&lru_pvecs.lock);
 }
 
-#ifdef CONFIG_LRU_GEN
-static void folio_inc_refs(struct folio *folio)
-{
-	unsigned long new_flags, old_flags = READ_ONCE(folio->flags);
-
-	if (folio_test_unevictable(folio))
-		return;
-
-	if (!folio_test_referenced(folio)) {
-		folio_set_referenced(folio);
-		return;
-	}
-
-	if (!folio_test_workingset(folio)) {
-		folio_set_workingset(folio);
-		return;
-	}
-
-	/* see the comment on MAX_NR_TIERS */
-	do {
-		new_flags = old_flags & LRU_REFS_MASK;
-		if (new_flags == LRU_REFS_MASK)
-			break;
-
-		new_flags += BIT(LRU_REFS_PGOFF);
-		new_flags |= old_flags & ~LRU_REFS_MASK;
-	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
-}
-#else
-static void folio_inc_refs(struct folio *folio)
-{
-}
-#endif /* CONFIG_LRU_GEN */
-
 /*
  * Mark a page as having seen activity.
  *
@@ -451,11 +417,6 @@ static void folio_inc_refs(struct folio *folio)
  */
 void folio_mark_accessed(struct folio *folio)
 {
-	if (lru_gen_enabled()) {
-		folio_inc_refs(folio);
-		return;
-	}
-
 	if (!folio_test_referenced(folio)) {
 		folio_set_referenced(folio);
 	} else if (folio_test_unevictable(folio)) {
@@ -498,11 +459,6 @@ void folio_add_lru(struct folio *folio)
 
 	VM_BUG_ON_FOLIO(folio_test_active(folio) && folio_test_unevictable(folio), folio);
 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
-
-	/* see the comment in lru_gen_add_folio() */
-	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
-	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
-		folio_set_active(folio);
 
 	folio_get(folio);
 	local_lock(&lru_pvecs.lock);
@@ -595,7 +551,7 @@ static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec)
 
 static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec)
 {
-	if (!PageUnevictable(page) && (PageActive(page) || lru_gen_enabled())) {
+	if (PageActive(page) && !PageUnevictable(page)) {
 		int nr_pages = thp_nr_pages(page);
 
 		del_page_from_lru_list(page, lruvec);
@@ -710,7 +666,7 @@ void deactivate_file_folio(struct folio *folio)
  */
 void deactivate_page(struct page *page)
 {
-	if (PageLRU(page) && !PageUnevictable(page) && (PageActive(page) || lru_gen_enabled())) {
+	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
 		struct pagevec *pvec;
 
 		local_lock(&lru_pvecs.lock);
