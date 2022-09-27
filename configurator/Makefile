@@ -17,13 +17,13 @@ configurator: $(OBJS)
 	$(CC) $(CXXFLAGS) $(USE) $(OBJS) -o configurator
 
 
-build/configurator.o:
+build/configurator.o: src/configurator.c
 	cd src;make
 
-build/patcher.o:
+build/patcher.o: src/patcher.c
 	cd src;make
 
-build/filehelper.o:
+build/filehelper.o: src/filehelper.c
 	cd src;make
 
 clean:

@@ -92,14 +92,14 @@ file_copy (char *source, char *destination)
     fs = open(source,O_RDONLY); //just exists to create file if not exist
                                 //
     if (file_check(1,source) != 0){
-        _vprintf("[x] Couldnt access files trying to copy existing config.\n");
+        _vprintf("Couldnt access files trying to copy existing config.\n");
         exit(1);
     }
 
-    printf("[+] Opened file for reading\n");
+    _vprintf("Opened file for reading\n");
     FILE *fd = fopen(destination,"w+");
     FILE *fs_read = fopen(source,"r+");
-    printf("[+] Opening file for writing\n");
+    _vprintf("Opening file for writing\n");
 
 
     char buf[8192] = {};

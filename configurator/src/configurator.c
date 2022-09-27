@@ -5,8 +5,8 @@
  * @version 1
  * @date 2022-09-25
 Developed as a helper to build custom kernels.
-This product includes software developed by Soham Nandy 
- 
+This product includes software developed by Soham Nandy
+
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +20,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * @copyright Soham Nandy (c) 2022
- * 
+ *
  */
 
 #ifdef __cplusplus
@@ -49,7 +49,7 @@ bool _custom_config;
 bool _use_dist_config;
 bool _interactive;
 bool _custom_kernel;
-bool _v_flag = true;
+bool _v_flag = false;
 bool _force;
 
 static const char *program_name = "kernel-configurator";
@@ -62,7 +62,7 @@ char *kernel_version = "5.19.10";
 
 /**
  * @brief prints to stderr, used to errors.
- * 
+ *
  * @param fmt character string
  * @param ... N number of arguments to use with fmt.
  */
@@ -77,7 +77,7 @@ void eprintf(char *fmt, ...)
 }
 /**
  * @brief Verbose print if _v_flag is set
- * 
+ *
  * @param fmt character string
  * @param ... N number of arguments to use with fmt.
  */
@@ -92,7 +92,6 @@ void _vprintf(char *fmt, ...)
         fflush(stdout);
     }
 }
-
 
 static void usage()
 {
@@ -117,7 +116,7 @@ static void *terminate_addr = NULL;
 /**
  * @brief Flush stdout and stderr, exit following fprintf command to print
  * signal that was caught.
- * 
+ *
  * @param signo Signal sent to program.
  */
 static void terminate_intr(int signo)
@@ -130,9 +129,9 @@ static void terminate_intr(int signo)
     exit(1);
 }
 /**
- * @brief Captures term signals sent to the program. 
+ * @brief Captures term signals sent to the program.
  * Redirects to terminate_intr
- * 
+ *
  * @param term_addr Misc option. Defaults to *0x0
  */
 static void capture_terminate(jmp_buf term_addr)
@@ -147,7 +146,7 @@ static void capture_terminate(jmp_buf term_addr)
 }
 /**
  * @brief Return all capture handles to system.
- * 
+ *
  */
 static void uncapture_terminate(void)
 {
@@ -162,7 +161,7 @@ static void uncapture_terminate(void)
 
 /**
  * @brief Prompt user to choose kernel version. Lists optios
- * 
+ *
  */
 static void
 choose_kver()
@@ -236,10 +235,10 @@ choose_kver()
 }
 
 /**
- * @brief 
+ * @brief
  *      -> Copies kernel to boot directory
  *      -> Regenerates Grub configuration
- * 
+ *
  */
 
 static void
@@ -309,18 +308,18 @@ $(/bin/cat %s/.config | grep CONFIG_LOCALVERSION= | sed -r 's/^CONFIG_LOCALVERSI
 
 /**
  * @brief Starts building the kernel
- * 
-*/
+ *
+ */
 static void
 make_kernel()
 {
     capture_terminate(NULL);
     choose_kver();
 
-        /*
-         * Create paths for 5 files. The Makefile and Kconfig will be scanned to see if directory exists
-         * bzImage,SystemMap and config is used to move files.
-         */
+    /*
+     * Create paths for 5 files. The Makefile and Kconfig will be scanned to see if directory exists
+     * bzImage,SystemMap and config is used to move files.
+     */
 
     char makefile[2048];
     char Kconfig[2048];
@@ -394,7 +393,7 @@ make_kernel()
  * @brief Safe integer input in C
  * Terminates if EOF error/ Number exceeding maximum possible limits / \0 or \n in number
  * non numeric number
- * 
+ *
  * @return long number taken in input.
  */
 long input()
@@ -438,8 +437,8 @@ long input()
 /**
  * @brief Get the config.gz from /proc/
  * Extract it using zcat_impl implemented in filehelper.c
- * 
- * @return 1 if file is not in .gz format 
+ *
+ * @return 1 if file is not in .gz format
  * @return 2 if file is not in .gz format
  * @return 3 if the file cannot be accessed
  */
@@ -471,17 +470,18 @@ get_proc_gz()
         return 3;
     }
     zcat_impl(inFile, outFile);
-    make_kernel();
     return 0;
 }
 
 /**
  * @brief Uses distribution config
- * 
+ *
  */
 static void
 dist_config()
 {
+    #define ARCH_DEFAULT_PATH "./dist-config/arch-config"
+    #define GENTOO_DEFAULT_PATH "./dist-config/gentoo-dist-config"
     fprintf(stdout, (
                         "Choices:\n"
                         "1. Arch Linux\n"
@@ -498,11 +498,11 @@ dist_config()
     {
     case 1:
         printf("Arch linux config selected\n");
-        file_copy("./arch-config", g_oconfig);
+        file_copy(ARCH_DEFAULT_PATH, g_oconfig);
         break;
     case 2:
         printf("Gentoo-dist-config selected\n ");
-        file_copy("./gentoo-dist-config", g_oconfig);
+        file_copy(GENTOO_DEFAULT_PATH, g_oconfig);
         break;
     default:
         printf("Unrecognized option\n");
@@ -514,13 +514,12 @@ dist_config()
 
 /**
  * @brief Main function called in the beginning. Parses args
- * 
+ *
  * @param argc number of arguments
  * @param argv argument vector
  * @return int exit code
  */
-int 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 
     if (argc > 1)
@@ -532,6 +531,7 @@ main(int argc, char **argv)
             {
             case 'v':
                 _v_flag++;
+                continue;
             case 'h':
                 usage();
 
@@ -552,7 +552,7 @@ main(int argc, char **argv)
                     closedir(dir);
                 else if (ENOENT == errno)
                 {
-                    eprintf("[x] Kernel directory doesnt exist\n");
+                    eprintf("Kernel directory doesnt exist\n");
                     exit(1);
                 }
                 kernel_path = optarg;
@@ -608,12 +608,22 @@ main(int argc, char **argv)
     }
     if (_custom_config)
     {
-        ret = file_copy(g_iconfig, g_oconfig);
-        make_kernel();
+        if (file_check(2, g_iconfig, g_oconfig) == 0)
+        {
+            ret = file_copy(g_iconfig, g_oconfig);
+            if (ret == 0)
+            {
+                make_kernel();
+            }
+        }
     }
     else if (_extraction)
     {
         ret = get_proc_gz();
+        if (ret == 0)
+        {
+            make_kernel();
+        }
     }
 
     if (ret != 0)
@@ -622,8 +632,7 @@ main(int argc, char **argv)
         dist_config();
     }
 
-    eprintf("No flags specified\n Exiting");
-    usage();
-
+    printf("Unable to parse arguments\n");
+    dist_config();
     return 0;
 }
