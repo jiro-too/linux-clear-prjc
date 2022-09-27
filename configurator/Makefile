@@ -1,24 +1,3 @@
-#
-# This file is part of linux-clear-prjc.
-#
-# Developed as a helper to build custom kernels.
-# This product includes software developed by Soham Nandy @ DPSRPK 
-# (soham.nandy2006@gmail.com).
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
-
 CC = gcc
 USE=-D CUSTOM_GZ_FILE
 PATCHES=-D CPU_SCHEDULER_PDS\
@@ -31,15 +10,23 @@ PATCHES=-D CPU_SCHEDULER_PDS\
 				-D SUPPORT_LRU
 
 CXXFLAGS = -fno-stack-protector -O2 -lz $(USE) -Wno-unused-result
-configurator: filehelper.o patcher.o configurator.c 
-	$(CC) $(CXXFLAGS) configurator.c filehelper.o patcher.o -o configurator
 
-filehelper.o: filehelper.c
-	$(CC) filehelper.c -c
+OBJS= build/configurator.o build/filehelper.o build/patcher.o
 
-patcher.o: patcher.c
-	$(CC) $(PATCHES) patcher.c -c
+configurator: $(OBJS)
+	$(CC) $(CXXFLAGS) $(USE) $(OBJS) -o configurator
+
+
+build/configurator.o:
+	cd src;make
+
+build/patcher.o:
+	cd src;make
+
+build/filehelper.o:
+	cd src;make
+
 clean:
+	rm -rfv build/*.o
+	rm -rfv configurator
 	find . -exec touch {} \;
-	rm -rf *.o
-	rm -f configurator

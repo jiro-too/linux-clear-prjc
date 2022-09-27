@@ -1,25 +1,28 @@
 
-/*
- * This file is part of linux-clear-prjc.
- *
- * Developed as a helper to build custom kernels.
- * This product includes software developed by Soham Nandy @ DPSRPK 
- * (soham.nandy2006@gmail.com).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+/**
+ * @file filehelper.c
+ * @author Soham Nandy (you@domain.com)
+ * @brief This file is part of linux-clear-prjc.
+ * @version 1
+ * @date 2022-09-25
+Developed as a helper to build custom kernels.
+This product includes software developed by Soham Nandy 
+ 
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * @copyright Soham Nandy (c) 2022
+ * 
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,12 +38,25 @@
 #define CHUNK 32768
 static ssize_t processed;
 
+/**
+ * @brief Hard exits process with passed signal. 
+ * 
+ * @param signal signal to exit with
+ */
 static void 
 interrupt_handler(int signal)
 {
     eprintf("Caught termination signal %d\n Processed blocks %zd",signal,processed);
     _exit(signal);
 }
+
+/**
+ * @brief Check if a file exists.
+ * 
+ * @param argc number of arguments
+ * @param ... files to check for
+ * @return int -1 if error, otherwise 0
+ */
 
 int 
 file_check(
@@ -60,6 +76,13 @@ file_check(
     return 0;
 }
 
+/**
+ * @brief Copies file from source to destination
+ * 
+ * @param source Path of file to copy
+ * @param destination Path where to copy 
+ * @return int 0 on success
+ */
 int 
 file_copy (char *source, char *destination)
 {
@@ -91,7 +114,13 @@ file_copy (char *source, char *destination)
     return 0;
 }
 
-
+/**
+ * @brief Reimplimentation of ZCAT
+ * 
+ * @param input File to read from
+ * @param output File to output to (stdout works)
+ * 
+ */
 int 
 zcat_impl (FILE *input,FILE *output)
 {

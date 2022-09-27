@@ -1,22 +1,26 @@
-/*
- * This file is part of linux-clear-prjc.
- *
- * Developed as a helper to build custom kernels.
- * This product includes software developed by Soham Nandy @ DPSRPK
- * (soham.nandy2006@gmail.com).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+/**
+ * @file configurator.c
+ * @author Soham Nandy (you@domain.com)
+ * @brief This file is part of linux-clear-prjc.
+ * @version 1
+ * @date 2022-09-25
+Developed as a helper to build custom kernels.
+This product includes software developed by Soham Nandy 
+ 
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * @copyright Soham Nandy (c) 2022
+ * 
  */
 
 #ifdef __cplusplus
@@ -45,7 +49,7 @@ bool _custom_config;
 bool _use_dist_config;
 bool _interactive;
 bool _custom_kernel;
-bool _v_flag=true;
+bool _v_flag = true;
 bool _force;
 
 static const char *program_name = "kernel-configurator";
@@ -56,6 +60,12 @@ char *g_iconfig;                      /* Input config file location */
 char *kernel_path = "../linux";
 char *kernel_version = "5.19.10";
 
+/**
+ * @brief prints to stderr, used to errors.
+ * 
+ * @param fmt character string
+ * @param ... N number of arguments to use with fmt.
+ */
 void eprintf(char *fmt, ...)
 {
     // va_list is a special type that allows hanlding of variable
@@ -65,7 +75,12 @@ void eprintf(char *fmt, ...)
 
     vfprintf(stderr, fmt, args);
 }
-
+/**
+ * @brief Verbose print if _v_flag is set
+ * 
+ * @param fmt character string
+ * @param ... N number of arguments to use with fmt.
+ */
 void _vprintf(char *fmt, ...)
 {
     va_list args;
@@ -78,10 +93,7 @@ void _vprintf(char *fmt, ...)
     }
 }
 
-/**
- *
- * Prints help message. Static function can only be called from configurator object.
- */
+
 static void usage()
 {
     fprintf(stderr,
@@ -99,8 +111,15 @@ to copy parameters passed by -i\n"
             "-f \tStart making kernel without any user prompt\n");
     exit(1);
 }
+
 static void *terminate_addr = NULL;
 
+/**
+ * @brief Flush stdout and stderr, exit following fprintf command to print
+ * signal that was caught.
+ * 
+ * @param signo Signal sent to program.
+ */
 static void terminate_intr(int signo)
 {
     fflush(stdout);
@@ -110,7 +129,12 @@ static void terminate_intr(int signo)
         longjmp(terminate_addr, 1);
     exit(1);
 }
-
+/**
+ * @brief Captures term signals sent to the program. 
+ * Redirects to terminate_intr
+ * 
+ * @param term_addr Misc option. Defaults to *0x0
+ */
 static void capture_terminate(jmp_buf term_addr)
 {
     terminate_addr = term_addr;
@@ -121,7 +145,10 @@ static void capture_terminate(jmp_buf term_addr)
     signal(SIGUSR1, terminate_intr);
     signal(SIGUSR2, terminate_intr);
 }
-
+/**
+ * @brief Return all capture handles to system.
+ * 
+ */
 static void uncapture_terminate(void)
 {
     terminate_addr = NULL;
@@ -134,30 +161,10 @@ static void uncapture_terminate(void)
 }
 
 /**
- * Main function to execute commands to build the kernel. Checks whether custom
- * kernel flag is set, otherwise defaults to upstream version.
- *
- * Checks if the kernel directory has important files present to build the kernel.
- * Prompts the user:
- *          -> Whether to patch the kernel or not?
- *              * Calls patch_prompt() if affirmative
- *
- *          -> Whether to call `make menuconfig` to open ncurses config menu.
- *              * Also calls `make oldconfig` to ensure all options are set properly.
- *
- *          -> Whether to copy the compiled kernel binaries to /boot/
- *
- *          -> Whether to regenerate grub configuration.
- *
- *
- * @param
- *      None
- *
- * @return void
- *
+ * @brief Prompt user to choose kernel version. Lists optios
+ * 
  */
-
-static char *
+static void
 choose_kver()
 {
     capture_terminate(NULL);
@@ -186,47 +193,54 @@ choose_kver()
         {
         case 1:
             kernel_version = "5.19.0";
-            return kernel_version;
+            break;
         case 2:
             kernel_version = "5.19.1";
-            return kernel_version;
+            break;
         case 3:
             kernel_version = "5.19.2";
-            return kernel_version;
+            break;
         case 4:
             kernel_version = "5.19.3";
-            return kernel_version;
+            break;
         case 5:
             kernel_version = "5.19.4";
-            return kernel_version;
+            break;
         case 6:
             kernel_version = "5.19.5";
-            return kernel_version;
+            break;
         case 7:
             kernel_version = "5.19.6";
-            return kernel_version;
+            break;
         case 8:
             kernel_version = "5.19.7";
-            return kernel_version;
+            break;
         case 9:
             kernel_version = "5.19.8";
-            return kernel_version;
+            break;
         case 10:
             kernel_version = "5.19.9";
-            return kernel_version;
+            break;
         case 11:
             kernel_version = "5.19.10";
-            return kernel_version;
+            break;
         case 12:
             kernel_version = "5.19.11";
-            return kernel_version;
+            break;
         default:
             eprintf("Wrong option\n");
             exit(1);
         }
     }
-    return NULL;
+    return;
 }
+
+/**
+ * @brief 
+ *      -> Copies kernel to boot directory
+ *      -> Regenerates Grub configuration
+ * 
+ */
 
 static void
 install_kernel()
@@ -234,10 +248,11 @@ install_kernel()
     char bzImage[2048];
     char SystemMap[2048];
     sprintf(bzImage, "%s/arch/x86_64/boot/bzImage", kernel_path); // path to kernel binary
-    sprintf(SystemMap, "%s/System.map", kernel_path);          // path to kernel system map
+    sprintf(SystemMap, "%s/System.map", kernel_path);             // path to kernel system map
 
     _vprintf("Argumets passed to bzImage: %s\n\
-            Arguments passed to systemMap: %s\n",bzImage,SystemMap);
+            Arguments passed to systemMap: %s\n",
+             bzImage, SystemMap);
     int opt = true;
     printf("\nDo you want to copy kernel images to /boot ? [0/1]\n");
     if (!_force)
@@ -249,7 +264,7 @@ install_kernel()
         _vprintf("\nkernel version = %s\n", kernel_version);
 
         // Check if files exist before attempting to copy.
-     
+
         char copyCommandbzImage[2048];
         char copyCommandSystemMap[2048];
         /*
@@ -260,8 +275,8 @@ install_kernel()
         fflush(stdout);
         sprintf(copyCommandbzImage,
                 "cp %s\
-                    /boot/vmlinuz-%s\
-                    $(/bin/cat %s/.config | grep CONFIG_LOCALVERSION= | sed -r 's/^CONFIG_LOCALVERSION=//g' | tr -d '\"')",
+/boot/vmlinuz-%s\
+$(/bin/cat %s/.config | grep CONFIG_LOCALVERSION= | sed -r 's/^CONFIG_LOCALVERSION=//g' | tr -d '\"')",
                 bzImage, kernel_version, kernel_path);
 
         /*
@@ -270,12 +285,12 @@ install_kernel()
          * Retrieves kname using a combination of grep, sed and tr
          */
         sprintf(copyCommandSystemMap,
-"cp %s\
+                "cp %s\
 /boot/vmlinuz-%s\
 $(/bin/cat %s/.config | grep CONFIG_LOCALVERSION= | sed -r 's/^CONFIG_LOCALVERSION=//g' | tr -d '\"')",
                 SystemMap, kernel_version, kernel_path);
 
-        printf("%s",copyCommandbzImage);
+        printf("%s", copyCommandbzImage);
 
         /*
          * Generates grub config at /boot/grub/grub.cfg using the grub-mkconfig config. Adds kernel entry to /boot
@@ -291,21 +306,26 @@ $(/bin/cat %s/.config | grep CONFIG_LOCALVERSION= | sed -r 's/^CONFIG_LOCALVERSI
         }
     }
 }
+
+/**
+ * @brief Starts building the kernel
+ * 
+*/
 static void
 make_kernel()
 {
     capture_terminate(NULL);
     choose_kver();
 
-    /*
-     * Create paths for 5 files. The Makefile and Kconfig will be scanned to see if directory exists
-     * bzImage,SystemMap and config is used to move files.
-     */
+        /*
+         * Create paths for 5 files. The Makefile and Kconfig will be scanned to see if directory exists
+         * bzImage,SystemMap and config is used to move files.
+         */
 
     char makefile[2048];
     char Kconfig[2048];
-    sprintf(makefile, "%s/Makefile", kernel_path);           // path to kernel Makefile
-    sprintf(Kconfig, "%s/Kconfig", kernel_path);             // path to Kconfig
+    sprintf(makefile, "%s/Makefile", kernel_path); // path to kernel Makefile
+    sprintf(Kconfig, "%s/Kconfig", kernel_path);   // path to Kconfig
 
     if (file_check(2, makefile, Kconfig) == 0)
     {
@@ -370,6 +390,13 @@ make_kernel()
     exit(0);
 }
 
+/**
+ * @brief Safe integer input in C
+ * Terminates if EOF error/ Number exceeding maximum possible limits / \0 or \n in number
+ * non numeric number
+ * 
+ * @return long number taken in input.
+ */
 long input()
 {
     char buf[25];
@@ -408,6 +435,14 @@ long input()
     return num_long;
 }
 
+/**
+ * @brief Get the config.gz from /proc/
+ * Extract it using zcat_impl implemented in filehelper.c
+ * 
+ * @return 1 if file is not in .gz format 
+ * @return 2 if file is not in .gz format
+ * @return 3 if the file cannot be accessed
+ */
 static bool
 get_proc_gz()
 {
@@ -440,7 +475,12 @@ get_proc_gz()
     return 0;
 }
 
-static void dist_config()
+/**
+ * @brief Uses distribution config
+ * 
+ */
+static void
+dist_config()
 {
     fprintf(stdout, (
                         "Choices:\n"
@@ -472,7 +512,15 @@ static void dist_config()
     exit(0);
 }
 
-int main(int argc, char **argv)
+/**
+ * @brief Main function called in the beginning. Parses args
+ * 
+ * @param argc number of arguments
+ * @param argv argument vector
+ * @return int exit code
+ */
+int 
+main(int argc, char **argv)
 {
 
     if (argc > 1)
