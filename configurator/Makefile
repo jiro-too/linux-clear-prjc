@@ -10,12 +10,9 @@ PATCHES=-D CPU_SCHEDULER_PDS\
 				-D SUPPORT_LRU
 
 CXXFLAGS = -fno-stack-protector -O2 -lz $(USE) -Wno-unused-result
-
-OBJS= build/configurator.o build/filehelper.o build/patcher.o
-
+OBJS= build/configurator.o build/filehelper.o build/patcher.o 
 configurator: $(OBJS)
 	$(CC) $(CXXFLAGS) $(USE) $(OBJS) -o configurator
-
 
 build/configurator.o: src/configurator.c
 	cd src;make

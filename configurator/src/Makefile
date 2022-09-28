@@ -33,11 +33,15 @@ PATCHES=-D CPU_SCHEDULER_PDS\
 CXXFLAGS = -fno-stack-protector -O2 -lz $(USE) -Wno-unused-result
 configurator.o: filehelper.o patcher.o configurator.c 
 	$(CC) $(CXXFLAGS) $(USE) -c configurator.c filehelper.o patcher.o
-	mv *.o ../build/
-
+	cp configurator.o ../build/
 filehelper.o: filehelper.c
-	$(CC) filehelper.c -c
+	$(CC) filehelper.c -c 
+	cp filehelper.o ../build/
+	
 
 patcher.o: patcher.c
 	$(CC) $(PATCHES) patcher.c -c
+	cp patcher.o ../build/
+	
+
 

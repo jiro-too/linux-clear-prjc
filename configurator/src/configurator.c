@@ -68,7 +68,7 @@ char *kernel_version = "5.19.10";
  */
 void eprintf(char *fmt, ...)
 {
-    // va_list is a special type that allows hanlding of variable
+    // va_list is a special type that allows handling of variable
     // length parameter list
     va_list args;
     va_start(args, fmt);
@@ -160,79 +160,24 @@ static void uncapture_terminate(void)
 }
 
 /**
- * @brief Prompt user to choose kernel version. Lists optios
- *
- */
-static void
-choose_kver()
-{
-    capture_terminate(NULL);
-    if (_custom_kernel)
-    {
+ * @brief
+ * Checks kernel version based on /proc/version
+*/
+static void kver_detect() {
+char buffer[256];
+FILE *fp = fopen("/proc/version", "r");
+//uses [^\n] instead of %s to keep whitespace
+fscanf(fp, "%[^\n]", buffer);
 
-        fprintf(stdout,
-                (
-                    "\nChoose your exact kernel versions:\n"
-                    "1.\t5.19.0\n"
-                    "2.\t5.19.1\n"
-                    "3.\t5.19.2\n"
-                    "4.\t5.19.3\n"
-                    "5.\t5.19.4\n"
-                    "6.\t5.19.5\n"
-                    "7.\t5.19.6\n"
-                    "8.\t5.19.7\n"
-                    "9.\t5.19.8\n"
-                    "10.\t5.19.9\n"
-                    "11.\t5.19.10\n"
-                    "12.\t5.19.11\n"));
-
-        int kver_option = input();
-
-        switch (kver_option)
-        {
-        case 1:
-            kernel_version = "5.19.0";
-            break;
-        case 2:
-            kernel_version = "5.19.1";
-            break;
-        case 3:
-            kernel_version = "5.19.2";
-            break;
-        case 4:
-            kernel_version = "5.19.3";
-            break;
-        case 5:
-            kernel_version = "5.19.4";
-            break;
-        case 6:
-            kernel_version = "5.19.5";
-            break;
-        case 7:
-            kernel_version = "5.19.6";
-            break;
-        case 8:
-            kernel_version = "5.19.7";
-            break;
-        case 9:
-            kernel_version = "5.19.8";
-            break;
-        case 10:
-            kernel_version = "5.19.9";
-            break;
-        case 11:
-            kernel_version = "5.19.10";
-            break;
-        case 12:
-            kernel_version = "5.19.11";
-            break;
-        default:
-            eprintf("Wrong option\n");
-            exit(1);
-        }
+for (int i = 0; i < 256; ++i) {
+    if (buffer[i] == '(') {
+        buffer[i-1] = '\0';
     }
-    return;
 }
+//string manipulation go brrrr (removes "Linux version:")
+char *kernel_version = buffer+14;
+}
+
 
 /**
  * @brief
@@ -314,7 +259,7 @@ static void
 make_kernel()
 {
     capture_terminate(NULL);
-    choose_kver();
+    kver_detect();
 
     /*
      * Create paths for 5 files. The Makefile and Kconfig will be scanned to see if directory exists
