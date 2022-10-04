@@ -17,14 +17,15 @@ configurator: $(OBJS)
 	$(CC) $(CXXFLAGS) $(USE) $(OBJS) -o configurator
 
 
-build/configurator.o: src/configurator.c
+build/configurator.o: src/configurator.c src/configurator.h
 	cd src;make
 
-build/patcher.o: src/patcher.c
+build/patcher.o: src/patcher.c src/patcher.h
 	cd src;make
 
-build/filehelper.o: src/filehelper.c
+build/filehelper.o: src/filehelper.c src/filehelper.h
 	cd src;make
+
 
 clean:
 	rm -rfv build/*.o

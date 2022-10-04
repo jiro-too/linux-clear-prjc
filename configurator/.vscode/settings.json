@@ -1,0 +1,14 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/nolife/linux-clear-prjc/configurator",
+            "binaryPath": "/home/nolife/linux-clear-prjc/configurator/configurator",
+            "binaryArgs": []
+        }
+    ],
+    "files.associations": {
+        "filehelper.h": "c",
+        "zlib.h": "c",
+        "fcntl.h": "c"
+    }
+}

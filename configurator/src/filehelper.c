@@ -34,21 +34,58 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <zlib.h>
 #include "configurator.h"
 #include <signal.h>
+#include "filehelper.h"
+#include <signal.h>
+#include <setjmp.h>
+
 
 #define CHUNK 32768
 static ssize_t processed;
-
+static void *terminate_addr = NULL;
 /**
  * @brief Hard exits process with passed signal. 
  * 
  * @param signal signal to exit with
  */
 static void 
-interrupt_handler(int signal)
+terminate_intr(int signal)
 {
-    eprintf("Caught termination signal %d\n Processed blocks %zd",signal,processed);
+    eprintf("\nCaught termination signal %d\n Processed blocks %zd",signal,processed);
     _exit(signal);
 }
+
+/**
+ * @brief Captures term signals sent to the program.
+ * Redirects to terminate_intr
+ *
+ * @param term_addr Misc option. Defaults to *0x0
+ */
+static void capture_terminate(jmp_buf term_addr)
+{
+    terminate_addr = term_addr;
+    signal(SIGHUP, terminate_intr);
+    signal(SIGINT, terminate_intr);
+    signal(SIGPIPE, terminate_intr);
+    signal(SIGTERM, terminate_intr);
+    signal(SIGUSR1, terminate_intr);
+    signal(SIGUSR2, terminate_intr);
+}
+/**
+ * @brief Return all capture handles to system.
+ *
+ */
+static void uncapture_terminate(void)
+{
+    terminate_addr = NULL;
+    signal(SIGHUP, SIG_DFL);
+    signal(SIGINT, SIG_DFL);
+    signal(SIGPIPE, SIG_DFL);
+    signal(SIGTERM, SIG_DFL);
+    signal(SIGUSR1, SIG_DFL);
+    signal(SIGUSR2, SIG_DFL);
+}
+
+
 
 /**
  * @brief Check if a file exists.
@@ -57,6 +94,8 @@ interrupt_handler(int signal)
  * @param ... files to check for
  * @return int -1 if error, otherwise 0
  */
+
+
 
 int 
 file_check(
@@ -69,12 +108,51 @@ file_check(
     for (int i=0;i<argc;++i)
     {
         char *path = va_arg(argv,char*);
-        if (access(path,F_OK) !=0){
-            return -1;
+        if (access(path,F_OK) ==0){
+            return SUCCESS;
+        }
+        else {
+            return NO_EXIST;
         }
     }
-    return 0;
 }
+
+FILE* 
+access_file(char *file_name, const char *perms, int code)
+{
+
+    int ret = file_check(1,file_name);
+    if (ret == SUCCESS)
+    {
+        assert(ret==SUCCESS);
+        _vprintf("Trying to access file %s with perms %s\n", file_name,perms);
+        FILE *to_ret = fopen(file_name,perms);
+        _vprintf("File pointer at %p\n",to_ret);
+        return to_ret;
+    }
+    else if (ret == NO_EXIST)
+    {
+        if (code == HARD_EXIST)
+        {
+            eprintf("HARD EXIT: Critical file %s doesnt exist\n",file_name);
+            exit(ERROR);
+        }
+        else if (code == CREATE_NO_EXIST)
+        {
+            FILE *to_ret = fopen(file_name,"w+");
+            return to_ret;
+        }
+        else if (code  == SOFT_EXIST)
+        {
+            return NULL;
+        }
+        _vprintf("Error in accessing file with path %s\n",file_name);
+        return NULL;
+    }
+}
+
+
+
 
 /**
  * @brief Copies file from source to destination
@@ -88,30 +166,35 @@ file_copy (char *source, char *destination)
 {
    
     int fs;
-    
-    fs = open(source,O_RDONLY); //just exists to create file if not exist
-                                //
-    if (file_check(1,source) != 0){
-        _vprintf("Couldnt access files trying to copy existing config.\n");
-        exit(1);
+    fs = open(source,O_RDONLY); 
+    FILE *fs_read = access_file(source,"r+",SOFT_EXIST);
+    if (fs_read == NULL)
+    {
+        return NO_EXIST;
+    }
+    if (file_check(1,source) != SUCCESS){
+        _vprintf("Couldnt access files trying copy to existing config.\n");
+        return ERROR;
     }
 
-    _vprintf("Opened file for reading\n");
-    FILE *fd = fopen(destination,"w+");
-    FILE *fs_read = fopen(source,"r+");
-    _vprintf("Opening file for writing\n");
+    _vprintf("Opened file \"%s\" at %p for reading\n",source,fs_read);
+    // FILE *fd = fopen(destination,"w+");
+    // FILE *fs_read = fopen(source,"r+");
+    FILE *file_destination = access_file(destination,"w+",CREATE_NO_EXIST);
+    _vprintf("Opening file \"%s\" at %p for writing\n",destination,file_destination);
 
 
     char buf[8192] = {};
     long n;
     
     while (read(fs,buf,sizeof(buf))>0){
-        fwrite(buf,1,sizeof(buf),fd); 
+        fwrite(buf,1,sizeof(buf),file_destination); 
     }
-    _vprintf("[+] Data written to %s\n",destination);
-    fflush(fd);
-    fclose(fd);
-    return 0;
+    _vprintf("Data written to %s\n",destination);
+    fflush(file_destination);
+    fclose(file_destination);
+    fclose(fs_read);
+    return SUCCESS;
 }
 
 /**
@@ -124,6 +207,7 @@ file_copy (char *source, char *destination)
 int 
 zcat_impl (FILE *input,FILE *output)
 {
+    capture_terminate(NULL);
     z_stream strm = {};
     int ret = inflateInit2(&strm,16+MAX_WBITS);
     assert(ret == Z_OK);
@@ -142,10 +226,6 @@ zcat_impl (FILE *input,FILE *output)
         // Decompress all of what's in the input buffer.
         do {
             fflush(stdout);
-
-            signal(SIGINT,
-                    (void (*)(int))interrupt_handler); //typecast
-
             // Decompress as much as possible to the CHUNK output buffer.
             unsigned char out[CHUNK];
             strm.avail_out = CHUNK;
@@ -179,6 +259,8 @@ zcat_impl (FILE *input,FILE *output)
     assert(
             inflateEnd(&strm) == Z_OK
         );
+    
+    uncapture_terminate();
 
     return ret;
 }

@@ -34,7 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 char *kver;
-
+int k6_0_0 = 0;
 static void 
 patch_kernel(char *kernel_dir,char *patch_path)
 {
@@ -48,13 +48,18 @@ void patch_prompt(char *kernel_path)
 {
   fprintf(stdout,(
 "Enter kernel version to patch:\n\t\
-1)5.19\n"
+1)5.19\n\t\
+2)6.0\n"
           ));
 
   int opt = input();
   switch (opt){
     case 1:
       kver="5.19";
+    case 2:
+      kver="6.0";
+      printf("\n 6.0 KERNEL WILL BE PATCHED WITH OLDER 5.19 PATCHES THAT STILL WORK\nPATCHES THAT DONT WORK WILL BE SKIPPED");
+      k6_0_0++;
   }
   
 #ifdef CPU_SCHEDULER_PDS
@@ -62,13 +67,18 @@ void patch_prompt(char *kernel_path)
   printf("\nAlternative CPU schedulers. Recommended for gaming.[0/1]\n");
   opt=input();
   if (opt){
-    patch_kernel(kernel_path,"../linux-patches/5.19/projectc.patch");
-    patch_kernel(kernel_path,"../linux-patches/5.19/0003-glitched-base.patch");
+    char prjc[2048];
+    char gitchbase[2048];
+
+    sprintf(prjc,"../linux-patches/%s/projectc.patch",kver);
+    sprintf(gitchbase,"../linux-patches/%s/0003-glitched-base.patch",kver);
+    patch_kernel(kernel_path,prjc);
+    patch_kernel(kernel_path,gitchbase);
     printf("Patch applied successfully\n");
   }
 #endif
 #ifdef ALLOW_SYSCTL_DISALLOW_USER_PRIVELAGE
-#pragma message "PATCH ENABLED"
+#pragma message "ALLOW_SYSCTL_DISALLOW_USER_PRIVELAGE Enabled"
   printf("\nPatch kernel to allow sysctl to disallow unprivelaged CLONE_NEWUSER by default? [0/1]\n");
   opt = input();
   if (opt){
@@ -78,7 +88,7 @@ void patch_prompt(char *kernel_path)
 #endif
 
 #ifdef CLEAR_PATCHES
-#pragma message "PATCH ENABLED"
+#pragma message "Clear patches enabled"
   printf("\nPatch kernel with Xanmod and intel Clear patches. Recommended for gaming [0/1]\n");
   opt=input();
   if (opt){
@@ -88,20 +98,11 @@ void patch_prompt(char *kernel_path)
     printf("Patch applied successfully\n");
     
   }
-#endif
-  
-#ifdef ADD_ACS_OVERRIDES_IOMMU_PATCH
-#pragma message "PATCH ENABLED"
-  printf("\nAdd acs-overrides-iommu patches. Recommended [0/1]\n");
-  opt=input();
-  if (opt){
-    patch_kernel(kernel_path,"../linux-patches/5.19/0006-add-acs-overrides_iommu.patch");
-    printf("Patch applied successfully\n");
-  }
-#endif 
+#endif;
+
 
 #ifdef FSYNC_VIA_FUTEX
-#pragma message "PATCH ENABLED"
+#pragma message "FSYNC_VIA_FUTEX ENABLED"
   printf("\n\
 Add option to wait on mulitple futex. Allows old proton versions to keep using fsync\n\
 in newer versions of the kernel. Recommended [0/1]\n");
@@ -114,7 +115,7 @@ in newer versions of the kernel. Recommended [0/1]\n");
 #endif
 
 #ifdef WINESYNC_SUPPORT
-#pragma message "PATCH ENABLED"
+#pragma message "WINESYNC_SUPPORT ENABLED"
   printf("\nAdd option to support Winesync in the kernel. [0/1]\n");
   opt=input();
   if (opt){
@@ -124,8 +125,9 @@ in newer versions of the kernel. Recommended [0/1]\n");
 #endif
 
 #ifdef SUPPORT_LRU
-#pragma message "PATCH ENABLED"
-  printf(("\
+#pragma message "SUPPORT_LRU ENABLED"
+if (!k6_0_0){
+    printf(("\
 \nclearing the accessed bit in a PTE usually triggers a page fault in\n\
 non x86/x86_64 or arm64 architectures. Recommended if you dont have arm64 or x86 [0/1]\n"
         ));
@@ -134,9 +136,10 @@ non x86/x86_64 or arm64 architectures. Recommended if you dont have arm64 or x86
     patch_kernel(kernel_path,"../linux-patches/5.19/0010-lru_5.19.patch");
     printf("Patch applied successfully\n");
   }
+}
 #endif
 #ifdef MISC_PATCHES
-#pragma message "PATCH ENABLED"
+#pragma message "MISC_PATCHES ENABLED"
   printf("\nMisc patches? [0/1]\n");
   opt=input();
   if (opt){

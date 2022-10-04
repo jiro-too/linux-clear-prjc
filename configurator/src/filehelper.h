@@ -28,6 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define filehelper_h
 #endif
 
-static unsigned char checksum();
-int file_check();
-int file_copy(); 
+#define HARD_EXIST 1
+#define CREATE_NO_EXIST 2
+#define SOFT_EXIST 3
+

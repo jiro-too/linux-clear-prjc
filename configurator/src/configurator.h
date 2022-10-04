@@ -38,11 +38,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define SIGTRAP 5   /* Trace trap. */ 
 #define SIGABRT 6   /* Abort. */
 
-#define ERROR_PREMSG "[\033[0;31m*\033[0;37m]"
-// _vprintf is used to print verbose output
+#define ERROR_PREMSG " [\033[0;31m*\033[0;37m] "
+#define VERBOSE_PREMSG " [\033[0;33m*\033[0;37m] "
+
+
+#define SUCCESS 0x0000000
+#define ERROR 0x0000001
+#define PERMISSION_ERROR 0x000000B
+#define NO_EXIST -0x00000001
+#define GZ_DATA_ERROR -0x0000003
 
 void eprintf(char *fmt,...);
 void _vprintf(char *fmt,...);
 
 long input();
+char* g_kver();
 static void make_kernel();
+
+
